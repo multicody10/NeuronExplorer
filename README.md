@@ -83,3 +83,93 @@ Start by reading the Streamlit console output.
   Reduce map jitter/spread or run a few more steps to stabilize activations.
 - Map/graphs empty  
   Click **Run** to generate data; the map updates after steps are collected.
+
+## Research
+  <details>
+<summary><strong>TokenSensor (Experimental)</strong></summary>
+
+TokenSensor is an experimental interpretability mode that treats a language model like a running system and exposes pertoken telemetry.
+
+Every token that flows through the model produces hidden states at each layer. TokenSensor attaches a small recorder at a chosen hook point (usually a residual stream) and translates each token hidden state into a sparse, humaninspectable feature readout using a pretrained Sparse Autoencoder (SAE). This reframes mapping as building an index over token events, more like profiling and debugging than afterthefact inspection.
+
+## What it records
+
+For each token position, TokenSensor stores a compact record:
+
+- token id and decoded token string
+- position in the sequence
+- hook point (layer and stream)
+- top K SAE features and activation values
+
+From this stream you can build:
+
+- feature to top activating contexts
+- prompt span to dominant features
+- feature cooccurrence graphs
+- feature exemplars for labeling and verification
+
+## How it works
+
+At a chosen hook point, for each token hidden vector `h` with size `D`:
+
+1. Run the model to obtain `h`
+2. Decode SAE activations `a = f(W_enc · h + b)`
+3. Keep only top K activations for that token
+4. Store `(token, pos, topK feature ids, topK values)`
+
+The point is sparsity. You do not store everything, you store the most informative slice.
+
+## Operating modes
+
+### Offline mapping mode (best signal, fastest overall)
+- Run a dataset of prompts in batches
+- Collect hidden states for all tokens
+- Decode SAE with a single large batched matmul
+- Build indices for browsing and labeling
+
+### Realtime sensing mode (best interactivity)
+- During generation, hook only the newest token position
+- Decode SAE for that one token
+- Display top K features live with a rolling context window
+
+## Speed notes
+
+TokenSensor cannot be free. You must run tokens to get hidden states, and SAE decode adds compute. Overhead stays bounded by design:
+
+- decode only one or a few layers
+- batch decode whenever possible
+- keep only top K per token
+- prefer GPU half precision for SAE decode when available
+- in realtime decode only the newest token
+
+## Labeling and truth
+
+Feature names are hypotheses, not truth. Treat labels as metadata backed by evidence:
+
+- label from many top contexts, not a single example
+- look for clusters inside a feature’s contexts
+- collect counterexamples where the label should apply but does not
+- use causal tests (feature ablation or steering) when it matters
+
+## Coaxing features for exploration
+
+TokenSensor supports targeted exploration, with a strict evidence mindset:
+
+- **Probe search**: find where a feature fires in real datasets and read contexts (evidence)
+- **Feature targeted generation**: bias sampling toward continuations that increase a chosen feature (microscope, not proof)
+
+## Data contract
+
+### Datasets
+- `.jsonl` with `{ "text": "..." }` or `{ "prompt": "..." }`
+- `.txt` with one prompt per line
+
+### SAEs
+- pretrained SAE weights compatible with the chosen hook point
+- config describing `D`, number of features, nonlinearity, and target layer
+
+### Outputs
+- per token top K feature records
+- feature and span indices for fast browsing and search
+
+</details>
