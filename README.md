@@ -2,7 +2,7 @@
 
 Streamlit GUI for exploring neuron activations with a streaming concept labeler, active probing, and a realtime map view inspired by the real‑time neuron labeling demo.
 
-![Neuron Explorer UI](docs/ui.png)
+![UI](https://i.imgur.com/mRHtMP8.png)
 
 ## Features
 - Live neuron labeling with confidence tracking, trends, and auto‑explore
@@ -83,6 +83,3 @@ Start by reading the Streamlit console output.
   Reduce map jitter/spread or run a few more steps to stabilize activations.
 - Map/graphs empty  
   Click **Run** to generate data; the map updates after steps are collected.
-
-## Screenshot
-Place the attached UI image at `docs/ui.png` so the README preview renders it.
