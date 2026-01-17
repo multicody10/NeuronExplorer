@@ -1,6 +1,6 @@
 # Neuron Explorer
 
-Streamlit GUI for exploring neuron activations with a streaming concept labeler, active probing, and a realtime map view inspired by the real‑time neuron labeling demo.
+Streamlit GUI for exploring neuron activations with a streaming concept labeler, active probing, and a realtime map view [inspired by the real‑time neuron labeling demo](https://github.com/multicody10/rt_neuron_label_demo).
 
 ![UI](https://i.imgur.com/mRHtMP8.png)
 
